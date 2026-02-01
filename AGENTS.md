@@ -4,12 +4,6 @@
 - Commits follow short, imperative summaries (e.g., “Add …”, “Remove …”, “Clarify …”).
 - PRs should include a concise description, link related issues or plans in `dev_plans/`.
 
-## Agent Control Rules
-- Always list sessions before sending a task.
-- Require a confirmation step before sending any task.
-- Never send tasks that can cause destructive or external actions without explicit user approval.
-- Log each agent action with timestamp + target session id.
-
 ## Agent Maintenance
 - Update this file ad hoc when new tooling, scripts, or workflows are added so future runs stay optimal.
 
