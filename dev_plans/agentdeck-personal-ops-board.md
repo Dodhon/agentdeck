@@ -137,11 +137,11 @@ Local files (sources)                        OpenClaw control
 9. Will this replace current cron briefs? → No; it consumes them.
 10. How portable is it? → Local-first; can be moved with the repo.
 
-12) Open questions
-- Storage: SQLite vs JSON file store?
-- UI: simple terminal TUI vs local web app?
-- Should ingestion run on demand or via cron?
-- Do you want a confirmation step for agent actions by default?
+12) Open questions (answered)
+- Storage: **SQLite** (default). Rationale: enables filtering/history and avoids manual JSON stitching.
+- UI: **Local web app** (default). Rationale: fastest iteration and most usable control surface.
+- Ingestion trigger: **On demand** (default) with optional cron later. Rationale: avoid background daemons for v1.
+- Agent action confirmation: **Yes, required** by default. Rationale: explicit control + auditability.
 
 13) Core PR vs Optional follow‑ups
 **Core PR (must‑do)**
