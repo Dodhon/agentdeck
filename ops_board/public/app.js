@@ -8,7 +8,12 @@ const agentsList = document.getElementById("agents-list");
 const selectedAgent = document.getElementById("selected-agent");
 const agentMessage = document.getElementById("agent-message");
 const agentSendButton = document.getElementById("agent-send-button");
+const agentSearch = document.getElementById("agent-search");
+const agentFilter = document.getElementById("agent-filter");
+const sourceFilter = document.getElementById("source-filter");
 let selectedSessionId = null;
+let allSessions = [];
+let lastAgentError = null;
 
 function bucketForStatus(status) {
   if (status === "next") return "next";
@@ -104,13 +109,20 @@ async function updateStatus(id, status) {
   await loadItems();
 }
 
-function renderAgents(sessions) {
+function renderAgents(sessions, error) {
   agentsList.textContent = "";
+  lastAgentError = error || null;
+  if (error) {
+    const warning = document.createElement("div");
+    warning.className = "empty";
+    warning.textContent = `Gateway error: ${error}`;
+    agentsList.appendChild(warning);
+  }
   if (!sessions || sessions.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty";
     empty.textContent =
-      "No sessions configured. Set AGENT_SESSIONS_PATH to a sessions.json file.";
+      "No sessions available. Configure Gateway or enable fallback sessions.";
     agentsList.appendChild(empty);
     return;
   }
@@ -126,7 +138,12 @@ function renderAgents(sessions) {
 
     const meta = document.createElement("div");
     meta.className = "card-meta";
-    meta.textContent = session.last_message || "No messages yet";
+    const lastMessage = session.last_message || "No messages yet";
+    const labels = [];
+    if (session.agent) labels.push(session.agent);
+    if (session.source) labels.push(session.source);
+    const labelText = labels.length > 0 ? `${labels.join(" · ")} · ` : "";
+    meta.textContent = `${labelText}${lastMessage}`;
     card.appendChild(meta);
 
     const actions = document.createElement("div");
@@ -154,10 +171,92 @@ function renderAgents(sessions) {
   });
 }
 
+function normalizeSearchValue(value) {
+  if (!value) return "";
+  return String(value).toLowerCase();
+}
+
+function updateFilterOptions(sessions) {
+  const agentValues = new Set();
+  const sourceValues = new Set();
+
+  sessions.forEach((session) => {
+    if (session.agent) {
+      agentValues.add(String(session.agent));
+    }
+    if (session.source) {
+      sourceValues.add(String(session.source));
+    }
+  });
+
+  const currentAgent = agentFilter.value;
+  const currentSource = sourceFilter.value;
+
+  agentFilter.textContent = "";
+  const agentDefault = document.createElement("option");
+  agentDefault.value = "";
+  agentDefault.textContent = "All agents";
+  agentFilter.appendChild(agentDefault);
+  Array.from(agentValues)
+    .sort()
+    .forEach((agent) => {
+      const option = document.createElement("option");
+      option.value = agent;
+      option.textContent = agent;
+      agentFilter.appendChild(option);
+    });
+  agentFilter.value = currentAgent;
+
+  sourceFilter.textContent = "";
+  const sourceDefault = document.createElement("option");
+  sourceDefault.value = "";
+  sourceDefault.textContent = "All sources";
+  sourceFilter.appendChild(sourceDefault);
+  Array.from(sourceValues)
+    .sort()
+    .forEach((source) => {
+      const option = document.createElement("option");
+      option.value = source;
+      option.textContent = source;
+      sourceFilter.appendChild(option);
+    });
+  sourceFilter.value = currentSource;
+}
+
+function applyAgentFilters() {
+  const query = normalizeSearchValue(agentSearch.value);
+  const agentValue = agentFilter.value;
+  const sourceValue = sourceFilter.value;
+
+  const filtered = allSessions.filter((session) => {
+    if (agentValue && String(session.agent || "") !== agentValue) {
+      return false;
+    }
+    if (sourceValue && String(session.source || "") !== sourceValue) {
+      return false;
+    }
+    if (!query) return true;
+    const haystack = [
+      session.title,
+      session.id,
+      session.last_message,
+      session.agent,
+      session.source,
+    ]
+      .map(normalizeSearchValue)
+      .join(" ");
+    return haystack.includes(query);
+  });
+
+  renderAgents(filtered, lastAgentError);
+}
+
 async function loadAgents() {
   const response = await fetch("/api/agents");
   const data = await response.json();
-  renderAgents(data.sessions);
+  allSessions = Array.isArray(data.sessions) ? data.sessions : [];
+  updateFilterOptions(allSessions);
+  renderAgents(allSessions, data.error);
 }
 
 agentSendButton.onclick = async () => {
@@ -180,6 +279,10 @@ agentSendButton.onclick = async () => {
   });
   agentMessage.value = "";
 };
+
+agentSearch.addEventListener("input", applyAgentFilters);
+agentFilter.addEventListener("change", applyAgentFilters);
+sourceFilter.addEventListener("change", applyAgentFilters);
 
 loadItems();
 loadAgents();

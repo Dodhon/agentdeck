@@ -19,6 +19,20 @@
           <h2>Agents</h2>
           <p class="panel-meta">Select a session and send a task.</p>
         </div>
+        <div class="agent-filters">
+          <input
+            id="agent-search"
+            type="search"
+            placeholder="Search sessions..."
+            aria-label="Search sessions"
+          />
+          <select id="agent-filter" aria-label="Filter by agent">
+            <option value="">All agents</option>
+          </select>
+          <select id="source-filter" aria-label="Filter by source">
+            <option value="">All sources</option>
+          </select>
+        </div>
         <div id="agents-list" class="list"></div>
         <div class="agent-send">
           <div id="selected-agent" class="agent-selected">No session selected</div>
