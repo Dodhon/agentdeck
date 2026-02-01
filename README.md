@@ -29,6 +29,19 @@ Optional:
 - `AGENT_SESSIONS_PATH`: path to sessions JSON or a directory containing `sessions.json`
 - `DB_PATH`: override SQLite file (default `ops_board/ops_board.sqlite`)
 - `PORT`: UI port (default `3333`)
+- `OPENCLAW_GATEWAY_ENABLED`: set to `1` to use the Gateway as session source
+- `OPENCLAW_GATEWAY_URL`: Gateway WS URL (example `ws://127.0.0.1:18789`)
+- `OPENCLAW_GATEWAY_TOKEN`: Gateway token (preferred)
+- `OPENCLAW_GATEWAY_PASSWORD`: Gateway password (fallback)
+- `OPENCLAW_GATEWAY_SCOPES`: comma-separated scopes (default `operator.read,operator.write`)
+- `OPENCLAW_GATEWAY_FALLBACK`: set to `1` to fallback to file sessions on errors
+- `OPENCLAW_SESSION_ID_FIELD`: required session id field path for normalization
+- `OPENCLAW_SESSION_TITLE_FIELD`: optional title field path
+- `OPENCLAW_SESSION_AGENT_FIELD`: optional agent field path
+- `OPENCLAW_SESSION_LAST_MESSAGE_FIELD`: optional last message field path
+- `OPENCLAW_SESSION_LAST_ACTIVE_FIELD`: optional last active field path
+- `OPENCLAW_CHAT_SEND_SESSION_FIELD`: session field name for `chat.send` (default `sessionKey`)
+- `OPENCLAW_CHAT_SEND_MESSAGE_FIELD`: message field name for `chat.send` (default `message`)
 
 Example:
 ```bash
@@ -36,6 +49,12 @@ export SOURCE_ROOT="/Users/thuptenwangpo/clawd"
 export AGENT_SESSIONS_PATH="/Users/thuptenwangpo/.openclaw/agents/main/sessions"
 export DB_PATH="/Users/thuptenwangpo/Documents/GitHub/agentdeck/ops_board/ops_board.sqlite"
 export PORT=3333
+export OPENCLAW_GATEWAY_ENABLED=1
+export OPENCLAW_GATEWAY_URL="ws://127.0.0.1:18789"
+export OPENCLAW_GATEWAY_TOKEN="your-token"
+export OPENCLAW_SESSION_ID_FIELD="id"
+export OPENCLAW_SESSION_TITLE_FIELD="title"
+export OPENCLAW_SESSION_LAST_MESSAGE_FIELD="last_message"
 ```
 
 ## Run ingest + snapshot
@@ -75,6 +94,19 @@ Example format:
     }
   ]
 }
+```
+
+## Gateway sessions
+To use the OpenClaw Gateway as the session source, enable it and provide the
+session field mapping you want to normalize from the live Gateway response.
+Gateway auth is sent on connect as `connect.params.auth.token` or `.password`.
+
+Minimal example:
+```bash
+export OPENCLAW_GATEWAY_ENABLED=1
+export OPENCLAW_GATEWAY_URL="ws://127.0.0.1:18789"
+export OPENCLAW_GATEWAY_TOKEN="your-token"
+export OPENCLAW_SESSION_ID_FIELD="id"
 ```
 
 ## Validate
