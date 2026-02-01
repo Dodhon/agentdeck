@@ -14,12 +14,14 @@ const DEFAULT_SESSIONS_PATH = path.resolve(
   "agent",
   "sessions.json"
 );
+let detectedAgentName = null;
 
 function resolveSessionsPath(envPath) {
   if (!envPath) {
     const detected = detectOpenClawSessionsPath();
     if (detected) {
-      return resolveSessionsPath(detected);
+      detectedAgentName = detected.agentName;
+      return resolveSessionsPath(detected.path);
     }
     return DEFAULT_SESSIONS_PATH;
   }
@@ -35,6 +37,12 @@ function resolveSessionsPath(envPath) {
     throw error;
   }
   return envPath;
+}
+
+function inferAgentNameFromPath(filePath) {
+  if (!filePath) return null;
+  const match = filePath.match(/\/\.openclaw\/agents\/([^/]+)/);
+  return match ? match[1] : null;
 }
 
 function detectOpenClawSessionsPath() {
@@ -64,10 +72,10 @@ function detectOpenClawSessionsPath() {
     const sessionsDir = path.join(agentDir, "sessions");
     const sessionsFile = path.join(agentDir, "sessions.json");
     if (fs.existsSync(sessionsDir)) {
-      return sessionsDir;
+      return { path: sessionsDir, agentName: name };
     }
     if (fs.existsSync(sessionsFile)) {
-      return sessionsFile;
+      return { path: sessionsFile, agentName: name };
     }
   }
 
@@ -117,6 +125,21 @@ function parseFirstJsonObject(raw) {
 
 function loadFileSessions() {
   const sessionsPath = resolveSessionsPath(process.env.AGENT_SESSIONS_PATH);
+  const agentName =
+    detectedAgentName || inferAgentNameFromPath(sessionsPath) || null;
+  const normalizeSession = (session) => {
+    if (!session || typeof session !== "object") {
+      return session;
+    }
+    const normalized = { ...session };
+    if (!normalized.id && normalized.sessionId) {
+      normalized.id = normalized.sessionId;
+    }
+    if (agentName && !normalized.agent) {
+      normalized.agent = agentName;
+    }
+    return normalized;
+  };
   try {
     const raw = fs.readFileSync(sessionsPath, "utf8");
     let json;
@@ -126,10 +149,11 @@ function loadFileSessions() {
       json = parseFirstJsonObject(raw);
     }
     if (json && Array.isArray(json.sessions)) {
-      return json.sessions;
+      return json.sessions.map(normalizeSession);
     }
     if (json && typeof json === "object") {
-      return Object.values(json);
+      const values = Object.values(json);
+      return values.map(normalizeSession);
     }
   } catch (error) {
     if (error && error.code === "ENOENT") {
