@@ -133,7 +133,9 @@ function renderAgents(sessions, error) {
 
     const title = document.createElement("div");
     title.className = "card-title";
-    title.textContent = session.title || session.id;
+    const titleText = session.title || session.id || "Session";
+    const agentPrefix = session.agent ? `${session.agent} · ` : "";
+    title.textContent = `${agentPrefix}${titleText}`;
     card.appendChild(title);
 
     const meta = document.createElement("div");
@@ -153,7 +155,11 @@ function renderAgents(sessions, error) {
     selectBtn.textContent = "Select";
     selectBtn.onclick = () => {
       selectedSessionId = session.id;
-      selectedAgent.textContent = `Selected: ${session.id}`;
+      if (session.agent) {
+        selectedAgent.textContent = `Selected: ${session.agent} · ${session.id}`;
+      } else {
+        selectedAgent.textContent = `Selected: ${session.id}`;
+      }
     };
     actions.appendChild(selectBtn);
     card.appendChild(actions);

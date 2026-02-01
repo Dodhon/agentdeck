@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const {
   isGatewayEnabled,
   listGatewaySessions,
@@ -13,9 +14,17 @@ const DEFAULT_SESSIONS_PATH = path.resolve(
   "agent",
   "sessions.json"
 );
+let detectedAgentName = null;
 
 function resolveSessionsPath(envPath) {
-  if (!envPath) return DEFAULT_SESSIONS_PATH;
+  if (!envPath) {
+    const detected = detectOpenClawSessionsPath();
+    if (detected) {
+      detectedAgentName = detected.agentName;
+      return resolveSessionsPath(detected.path);
+    }
+    return DEFAULT_SESSIONS_PATH;
+  }
   try {
     const stat = fs.statSync(envPath);
     if (stat.isDirectory()) {
@@ -28,6 +37,49 @@ function resolveSessionsPath(envPath) {
     throw error;
   }
   return envPath;
+}
+
+function inferAgentNameFromPath(filePath) {
+  if (!filePath) return null;
+  const match = filePath.match(/\/\.openclaw\/agents\/([^/]+)/);
+  return match ? match[1] : null;
+}
+
+function detectOpenClawSessionsPath() {
+  const home = os.homedir();
+  if (!home) return null;
+  const agentsRoot = path.join(home, ".openclaw", "agents");
+  if (!fs.existsSync(agentsRoot)) return null;
+
+  let entries;
+  try {
+    entries = fs
+      .readdirSync(agentsRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+  } catch (error) {
+    return null;
+  }
+
+  const preferred = ["main", "main2"];
+  const ordered = [
+    ...preferred.filter((name) => entries.includes(name)),
+    ...entries.filter((name) => !preferred.includes(name)).sort(),
+  ];
+
+  for (const name of ordered) {
+    const agentDir = path.join(agentsRoot, name);
+    const sessionsDir = path.join(agentDir, "sessions");
+    const sessionsFile = path.join(agentDir, "sessions.json");
+    if (fs.existsSync(sessionsDir)) {
+      return { path: sessionsDir, agentName: name };
+    }
+    if (fs.existsSync(sessionsFile)) {
+      return { path: sessionsFile, agentName: name };
+    }
+  }
+
+  return null;
 }
 
 function parseFirstJsonObject(raw) {
@@ -73,6 +125,21 @@ function parseFirstJsonObject(raw) {
 
 function loadFileSessions() {
   const sessionsPath = resolveSessionsPath(process.env.AGENT_SESSIONS_PATH);
+  const agentName =
+    detectedAgentName || inferAgentNameFromPath(sessionsPath) || null;
+  const normalizeSession = (session) => {
+    if (!session || typeof session !== "object") {
+      return session;
+    }
+    const normalized = { ...session };
+    if (!normalized.id && normalized.sessionId) {
+      normalized.id = normalized.sessionId;
+    }
+    if (agentName && !normalized.agent) {
+      normalized.agent = agentName;
+    }
+    return normalized;
+  };
   try {
     const raw = fs.readFileSync(sessionsPath, "utf8");
     let json;
@@ -82,7 +149,11 @@ function loadFileSessions() {
       json = parseFirstJsonObject(raw);
     }
     if (json && Array.isArray(json.sessions)) {
-      return json.sessions;
+      return json.sessions.map(normalizeSession);
+    }
+    if (json && typeof json === "object") {
+      const values = Object.values(json);
+      return values.map(normalizeSession);
     }
   } catch (error) {
     if (error && error.code === "ENOENT") {

@@ -6,6 +6,7 @@
 
 ## Agent Maintenance
 - Update this file ad hoc when new tooling, scripts, or workflows are added so future runs stay optimal.
+- Use the browser tool to verify UI changes and report the outcome.
 
 ## Workflow & Agency
 - Default to executing requested work end-to-end unless a decision requires explicit approval.
