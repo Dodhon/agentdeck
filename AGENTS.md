@@ -15,6 +15,6 @@
 
 ## Workflow & Agency
 - Default to executing requested work end-to-end unless a decision requires explicit approval.
-- Use feature branches + PRs for meaningful changes; merge only when requested by the user.
+- Use issue/PR feature branches for all development; merge only when requested by the user.
 - Ask only for missing credentials or irreversible actions (billing changes, paid plan upgrades, destructive ops).
 - Prefer minimal, base functionality first; expand only when asked.
