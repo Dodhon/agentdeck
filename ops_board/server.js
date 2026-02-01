@@ -1,11 +1,14 @@
 const path = require("path");
+const crypto = require("crypto");
 const express = require("express");
 const {
   defaultDbPath,
   openDb,
   fetchItems,
   updateItemStatus,
+  upsertAction,
 } = require("./lib/storage");
+const { loadSessions } = require("./lib/agents");
 
 const app = express();
 const PORT = process.env.PORT || 3333;
@@ -33,6 +36,39 @@ app.post("/api/items/:id/status", (req, res) => {
     return;
   }
 
+  res.json({ ok: true });
+});
+
+app.get("/api/agents", (req, res) => {
+  res.json({ sessions: loadSessions() });
+});
+
+function createActionId() {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return crypto.randomBytes(16).toString("hex");
+}
+
+app.post("/api/agents/:id/send", (req, res) => {
+  const { id } = req.params;
+  const { message, confirmed } = req.body || {};
+  if (!confirmed) {
+    res.status(400).json({ error: "Confirmation required" });
+    return;
+  }
+  if (!message) {
+    res.status(400).json({ error: "Missing message" });
+    return;
+  }
+
+  const action = {
+    id: createActionId(),
+    type: "agent.send",
+    payload: JSON.stringify({ session_id: id, message }),
+    created_at: new Date().toISOString(),
+  };
+  upsertAction(db, action);
   res.json({ ok: true });
 });
 
