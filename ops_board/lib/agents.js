@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const {
   isGatewayEnabled,
   listGatewaySessions,
@@ -15,7 +16,13 @@ const DEFAULT_SESSIONS_PATH = path.resolve(
 );
 
 function resolveSessionsPath(envPath) {
-  if (!envPath) return DEFAULT_SESSIONS_PATH;
+  if (!envPath) {
+    const detected = detectOpenClawSessionsPath();
+    if (detected) {
+      return resolveSessionsPath(detected);
+    }
+    return DEFAULT_SESSIONS_PATH;
+  }
   try {
     const stat = fs.statSync(envPath);
     if (stat.isDirectory()) {
@@ -28,6 +35,43 @@ function resolveSessionsPath(envPath) {
     throw error;
   }
   return envPath;
+}
+
+function detectOpenClawSessionsPath() {
+  const home = os.homedir();
+  if (!home) return null;
+  const agentsRoot = path.join(home, ".openclaw", "agents");
+  if (!fs.existsSync(agentsRoot)) return null;
+
+  let entries;
+  try {
+    entries = fs
+      .readdirSync(agentsRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+  } catch (error) {
+    return null;
+  }
+
+  const preferred = ["main", "main2"];
+  const ordered = [
+    ...preferred.filter((name) => entries.includes(name)),
+    ...entries.filter((name) => !preferred.includes(name)).sort(),
+  ];
+
+  for (const name of ordered) {
+    const agentDir = path.join(agentsRoot, name);
+    const sessionsDir = path.join(agentDir, "sessions");
+    const sessionsFile = path.join(agentDir, "sessions.json");
+    if (fs.existsSync(sessionsDir)) {
+      return sessionsDir;
+    }
+    if (fs.existsSync(sessionsFile)) {
+      return sessionsFile;
+    }
+  }
+
+  return null;
 }
 
 function parseFirstJsonObject(raw) {
@@ -83,6 +127,9 @@ function loadFileSessions() {
     }
     if (json && Array.isArray(json.sessions)) {
       return json.sessions;
+    }
+    if (json && typeof json === "object") {
+      return Object.values(json);
     }
   } catch (error) {
     if (error && error.code === "ENOENT") {

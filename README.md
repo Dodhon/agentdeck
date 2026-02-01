@@ -75,6 +75,10 @@ Open `http://localhost:3333`.
 The UI reads sessions from a JSON file. By default:
 `ops_board/agent/sessions.json`
 
+If OpenClaw is installed, AgentDeck will automatically look for
+`~/.openclaw/agents/<agent>/sessions` (preferring `main`, then `main2`) before
+falling back to the repo default. Set `AGENT_SESSIONS_PATH` to override.
+
 To point at a different file:
 ```bash
 export AGENT_SESSIONS_PATH="/path/to/sessions.json"
