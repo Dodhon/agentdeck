@@ -119,6 +119,32 @@ h1 {
   min-height: auto;
 }
 
+.agent-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+
+.agent-filters input,
+.agent-filters select {
+  background: #14110c;
+  color: var(--text);
+  border: 1px solid rgba(255, 230, 190, 0.2);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.agent-filters input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.agent-filters select {
+  min-width: 140px;
+}
+
 .list {
   display: flex;
   flex-direction: column;
