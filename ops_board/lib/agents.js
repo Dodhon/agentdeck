@@ -1,5 +1,11 @@
 const fs = require("fs");
 const path = require("path");
+const {
+  isGatewayEnabled,
+  listGatewaySessions,
+  normalizeGatewaySessions,
+  getEnvBool,
+} = require("./gateway");
 
 const DEFAULT_SESSIONS_PATH = path.resolve(
   __dirname,
@@ -65,7 +71,7 @@ function parseFirstJsonObject(raw) {
   return null;
 }
 
-function loadSessions() {
+function loadFileSessions() {
   const sessionsPath = resolveSessionsPath(process.env.AGENT_SESSIONS_PATH);
   try {
     const raw = fs.readFileSync(sessionsPath, "utf8");
@@ -85,6 +91,30 @@ function loadSessions() {
     throw error;
   }
   return [];
+}
+
+async function loadSessions() {
+  if (!isGatewayEnabled()) {
+    return { sessions: loadFileSessions(), error: null };
+  }
+
+  try {
+    const rawSessions = await listGatewaySessions();
+    const normalized = normalizeGatewaySessions(rawSessions);
+    if (normalized.error) {
+      if (getEnvBool(process.env.OPENCLAW_GATEWAY_FALLBACK)) {
+        return { sessions: loadFileSessions(), error: normalized.error };
+      }
+      return { sessions: [], error: normalized.error };
+    }
+    return { sessions: normalized.sessions, error: null };
+  } catch (error) {
+    const message = error ? error.message || String(error) : "Gateway error";
+    if (getEnvBool(process.env.OPENCLAW_GATEWAY_FALLBACK)) {
+      return { sessions: loadFileSessions(), error: message };
+    }
+    return { sessions: [], error: message };
+  }
 }
 
 module.exports = {

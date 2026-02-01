@@ -35,9 +35,20 @@ function openDb(dbPath) {
       id TEXT PRIMARY KEY,
       type TEXT NOT NULL,
       payload TEXT,
+      run_id TEXT,
+      error TEXT,
       created_at TEXT NOT NULL
     );
   `);
+
+  const actionColumns = db.prepare("PRAGMA table_info(actions)").all();
+  const columnNames = new Set(actionColumns.map((column) => column.name));
+  if (!columnNames.has("run_id")) {
+    db.exec("ALTER TABLE actions ADD COLUMN run_id TEXT;");
+  }
+  if (!columnNames.has("error")) {
+    db.exec("ALTER TABLE actions ADD COLUMN error TEXT;");
+  }
 
   return db;
 }
@@ -67,11 +78,13 @@ function upsertItems(db, items) {
 
 function upsertAction(db, action) {
   const stmt = db.prepare(`
-    INSERT INTO actions (id, type, payload, created_at)
-    VALUES (@id, @type, @payload, @created_at)
+    INSERT INTO actions (id, type, payload, run_id, error, created_at)
+    VALUES (@id, @type, @payload, @run_id, @error, @created_at)
     ON CONFLICT(id) DO UPDATE SET
       type=excluded.type,
       payload=excluded.payload,
+      run_id=excluded.run_id,
+      error=excluded.error,
       created_at=excluded.created_at;
   `);
   stmt.run(action);
