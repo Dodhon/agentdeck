@@ -9,6 +9,7 @@ const {
   upsertAction,
 } = require("./lib/storage");
 const { loadSessions } = require("./lib/agents");
+const { isGatewayEnabled, sendGatewayMessage } = require("./lib/gateway");
 
 const app = express();
 const PORT = process.env.PORT || 3333;
@@ -39,8 +40,9 @@ app.post("/api/items/:id/status", (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/agents", (req, res) => {
-  res.json({ sessions: loadSessions() });
+app.get("/api/agents", async (req, res) => {
+  const { sessions, error } = await loadSessions();
+  res.json({ sessions, error });
 });
 
 function createActionId() {
@@ -50,7 +52,7 @@ function createActionId() {
   return crypto.randomBytes(16).toString("hex");
 }
 
-app.post("/api/agents/:id/send", (req, res) => {
+app.post("/api/agents/:id/send", async (req, res) => {
   const { id } = req.params;
   const { message, confirmed } = req.body || {};
   if (!confirmed) {
@@ -62,14 +64,34 @@ app.post("/api/agents/:id/send", (req, res) => {
     return;
   }
 
+  const actionId = createActionId();
+  let runId = null;
+  let error = null;
+  if (isGatewayEnabled()) {
+    try {
+      const response = await sendGatewayMessage(id, message, actionId);
+      if (response && response.runId) {
+        runId = response.runId;
+      }
+    } catch (err) {
+      error = err ? err.message || String(err) : "Gateway send failed";
+    }
+  }
+
   const action = {
-    id: createActionId(),
+    id: actionId,
     type: "agent.send",
-    payload: JSON.stringify({ session_id: id, message }),
+    payload: JSON.stringify({ session_id: id, message, run_id: runId, error }),
+    run_id: runId,
+    error,
     created_at: new Date().toISOString(),
   };
   upsertAction(db, action);
-  res.json({ ok: true });
+  if (error) {
+    res.status(502).json({ error, runId });
+    return;
+  }
+  res.json({ ok: true, runId });
 });
 
 app.listen(PORT, () => {
