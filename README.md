@@ -21,6 +21,23 @@ Example:
 export SOURCE_ROOT="/Users/thuptenwangpo/clawd"
 ```
 
+## Configuration summary
+Required (ingest/snapshot):
+- `SOURCE_ROOT` or CLI flags (`--briefly-dir`, `--mission-control-dir`, `--memory-file`)
+
+Optional:
+- `AGENT_SESSIONS_PATH`: path to sessions JSON or a directory containing `sessions.json`
+- `DB_PATH`: override SQLite file (default `ops_board/ops_board.sqlite`)
+- `PORT`: UI port (default `3333`)
+
+Example:
+```bash
+export SOURCE_ROOT="/Users/thuptenwangpo/clawd"
+export AGENT_SESSIONS_PATH="/Users/thuptenwangpo/.openclaw/agents/main/sessions"
+export DB_PATH="/Users/thuptenwangpo/Documents/GitHub/agentdeck/ops_board/ops_board.sqlite"
+export PORT=3333
+```
+
 ## Run ingest + snapshot
 ```bash
 npm run ingest:dry
