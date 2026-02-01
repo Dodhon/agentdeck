@@ -81,6 +81,17 @@ function fetchItems(db) {
   return db.prepare("SELECT * FROM items ORDER BY updated_at DESC").all();
 }
 
+function updateItemStatus(db, id, status) {
+  const stmt = db.prepare(`
+    UPDATE items
+    SET status = ?, updated_at = ?
+    WHERE id = ?;
+  `);
+  const updatedAt = new Date().toISOString();
+  const info = stmt.run(status, updatedAt, id);
+  return info.changes > 0;
+}
+
 function fetchActions(db) {
   return db.prepare("SELECT * FROM actions ORDER BY created_at DESC").all();
 }
@@ -91,5 +102,6 @@ module.exports = {
   upsertItems,
   upsertAction,
   fetchItems,
+  updateItemStatus,
   fetchActions,
 };
