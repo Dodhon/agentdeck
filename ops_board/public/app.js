@@ -19,6 +19,12 @@ function bucketForStatus(status) {
 function createCard(item) {
   const card = document.createElement("div");
   card.className = "card";
+  if (item.status === "next") {
+    card.classList.add("card--status-next");
+  }
+  if (item.status === "done") {
+    card.classList.add("card--status-done");
+  }
 
   const title = document.createElement("div");
   title.className = "card-title";
@@ -27,18 +33,35 @@ function createCard(item) {
 
   const meta = document.createElement("div");
   meta.className = "card-meta";
-  meta.textContent = `${item.source} · ${item.kind || "unknown"}`;
+  const updatedAt = item.updated_at
+    ? new Date(item.updated_at).toLocaleString()
+    : "unknown";
+  meta.textContent = `${item.source} · ${item.kind || "unknown"} · ${updatedAt}`;
   card.appendChild(meta);
+
+  const path = document.createElement("div");
+  path.className = "card-path";
+  path.textContent = item.source_path || "unknown source";
+  card.appendChild(path);
+
+  if (item.raw) {
+    const detail = document.createElement("div");
+    detail.className = "card-detail";
+    detail.textContent = item.raw.slice(0, 180);
+    card.appendChild(detail);
+  }
 
   const actions = document.createElement("div");
   actions.className = "card-actions";
 
   const nextBtn = document.createElement("button");
+  nextBtn.className = "btn btn--primary";
   nextBtn.textContent = "Mark Next";
   nextBtn.onclick = () => updateStatus(item.id, "next");
   actions.appendChild(nextBtn);
 
   const doneBtn = document.createElement("button");
+  doneBtn.className = "btn btn--ghost";
   doneBtn.textContent = "Mark Done";
   doneBtn.onclick = () => updateStatus(item.id, "done");
   actions.appendChild(doneBtn);
@@ -94,7 +117,7 @@ function renderAgents(sessions) {
 
   sessions.forEach((session) => {
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "card card--agent";
 
     const title = document.createElement("div");
     title.className = "card-title";
@@ -109,6 +132,7 @@ function renderAgents(sessions) {
     const actions = document.createElement("div");
     actions.className = "card-actions";
     const selectBtn = document.createElement("button");
+    selectBtn.className = "btn";
     selectBtn.textContent = "Select";
     selectBtn.onclick = () => {
       selectedSessionId = session.id;

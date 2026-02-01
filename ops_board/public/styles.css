@@ -1,50 +1,121 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+  --bg: #11110f;
+  --bg-2: #1a1712;
+  --panel: #1a1712;
+  --panel-border: rgba(255, 230, 190, 0.16);
+  --card: rgba(25, 22, 17, 0.85);
+  --text: #f4efe6;
+  --muted: #c7b7a2;
+  --accent: #e6b36a;
+  --accent-soft: rgba(230, 179, 106, 0.18);
+  --teal: #8bbfae;
+  --danger: #9b7a63;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #0d1117;
-  color: #e6edf3;
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  background: radial-gradient(circle at top, #2f2a20 0%, var(--bg) 45%),
+    linear-gradient(120deg, #13120f 0%, #1a1712 45%, #13120f 100%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 0
+    ),
+    radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 120px 120px, 18px 18px;
+  opacity: 0.08;
+  pointer-events: none;
+  mix-blend-mode: screen;
 }
 
 .container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 42px 26px 60px;
+  position: relative;
+  z-index: 1;
 }
 
-header {
-  margin-bottom: 24px;
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 28px;
 }
 
 h1 {
   margin: 0 0 8px;
-  font-size: 28px;
-}
-
-.subtitle {
-  margin: 0;
-  color: #9da7b3;
+  font-family: "Fraunces", "Georgia", serif;
+  font-size: clamp(32px, 3.5vw, 48px);
 }
 
 .grid {
   display: grid;
-  gap: 16px;
+  gap: 18px;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
 .panel {
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 16px;
-  min-height: 300px;
+  background: linear-gradient(160deg, #1a1712 0%, #14110c 100%);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 18px 18px 20px;
+  min-height: 320px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at top right,
+    rgba(230, 179, 106, 0.06),
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.panel h2 {
+  font-family: "Fraunces", "Georgia", serif;
+  font-size: 20px;
+  margin: 0 0 12px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.panel-meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .agents-panel {
-  margin-top: 16px;
+  margin-top: 20px;
   min-height: auto;
 }
 
@@ -55,10 +126,30 @@ h1 {
 }
 
 .card {
-  background: #0d1117;
-  border: 1px solid #30363d;
-  border-radius: 6px;
-  padding: 12px;
+  background: var(--card);
+  border: 1px solid rgba(255, 230, 190, 0.14);
+  border-radius: 12px;
+  padding: 14px;
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(227, 167, 67, 0.45);
+}
+
+.card--status-next {
+  border-color: rgba(227, 167, 67, 0.6);
+  box-shadow: 0 0 0 1px rgba(227, 167, 67, 0.2);
+}
+
+.card--status-done {
+  border-color: rgba(123, 183, 166, 0.5);
+}
+
+.card--agent {
+  border-left: 3px solid rgba(123, 183, 166, 0.6);
 }
 
 .card-title {
@@ -67,9 +158,23 @@ h1 {
 }
 
 .card-meta {
-  color: #9da7b3;
+  color: var(--muted);
   font-size: 12px;
   margin-bottom: 10px;
+}
+
+.card-path {
+  font-size: 11px;
+  color: rgba(199, 183, 162, 0.75);
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+
+.card-detail {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  margin-bottom: 12px;
 }
 
 .card-actions {
@@ -77,22 +182,43 @@ h1 {
   gap: 8px;
 }
 
+.btn,
 button {
-  background: #238636;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 10px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid rgba(230, 179, 106, 0.4);
+  border-radius: 999px;
+  padding: 6px 12px;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
 }
 
-button:last-child {
-  background: #30363d;
+.btn:hover,
+button:hover {
+  background: rgba(227, 167, 67, 0.12);
+}
+
+.btn--primary {
+  background: linear-gradient(120deg, #e6b36a, #d79a4f);
+  color: #1a130a;
+  border: none;
+  box-shadow: 0 8px 20px rgba(230, 179, 106, 0.3);
+}
+
+.btn--ghost {
+  border-color: rgba(143, 107, 84, 0.6);
+  color: #e3d4c6;
+}
+
+.btn--ghost:hover {
+  background: rgba(143, 107, 84, 0.2);
 }
 
 .empty {
-  color: #9da7b3;
+  color: var(--muted);
   font-size: 13px;
 }
 
@@ -100,19 +226,20 @@ button:last-child {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .agent-selected {
   font-size: 12px;
-  color: #9da7b3;
+  color: var(--muted);
 }
 
 textarea {
-  background: #0d1117;
-  color: #e6edf3;
-  border: 1px solid #30363d;
-  border-radius: 6px;
-  padding: 8px;
+  background: #14110c;
+  color: var(--text);
+  border: 1px solid rgba(255, 230, 190, 0.2);
+  border-radius: 12px;
+  padding: 10px 12px;
   resize: vertical;
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
 }
