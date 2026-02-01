@@ -1,3 +1,5 @@
 node_modules/
 ops_board/ops_board.sqlite
+ops_board/ops_board.sqlite-shm
+ops_board/ops_board.sqlite-wal
 reports/ops-board/
