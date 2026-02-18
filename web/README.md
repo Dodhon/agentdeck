@@ -3,9 +3,12 @@
 Next.js + TypeScript Mission Control surface for phase-1 migration.
 
 ## Routes
-- `/tasks` task board with constrained state transitions
-- `/scheduler` recurring jobs + run-now flow
+- `/tasks` tasks board with constrained state transitions
+- `/content-pipeline` stage board for ideas/scripts/thumbnail/filming/publish
+- `/calendar` scheduled jobs + run-now flow
 - `/memory` ingest + citation-first search
+- `/team` agent roster (roles + responsibilities + focus)
+- `/office` live status view of team members
 - `/activity` immutable mutation timeline
 
 ## Run

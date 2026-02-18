@@ -116,3 +116,31 @@ export interface ActivityItem {
   metadataJson?: string;
   createdAt: string;
 }
+
+export type ContentStage =
+  | "idea"
+  | "script"
+  | "thumbnail"
+  | "filming"
+  | "published";
+
+export interface ContentItem {
+  contentId: string;
+  title: string;
+  notes: string;
+  imageUrl?: string;
+  stage: ContentStage;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TeamStatus = "planning" | "working" | "idle";
+
+export interface TeamMember {
+  memberId: string;
+  name: string;
+  role: string;
+  responsibilities: string;
+  currentFocus: string;
+  status: TeamStatus;
+}

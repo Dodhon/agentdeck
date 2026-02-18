@@ -40,8 +40,9 @@ TITLE="$(agent-browser get title)"
 SNAPSHOT="$(agent-browser snapshot -i)"
 
 echo "$TITLE" | grep -q "AgentDeck Mission Control"
-echo "$SNAPSHOT" | grep -q "Tasks"
-echo "$SNAPSHOT" | grep -q "Scheduler"
+echo "$SNAPSHOT" | grep -q "Tasks Board"
+echo "$SNAPSHOT" | grep -q "Content Pipeline"
+echo "$SNAPSHOT" | grep -q "Calendar"
 
 agent-browser screenshot "$SCREENSHOT_PATH" >/dev/null
 echo "Mission Control browser smoke passed. Screenshot: $SCREENSHOT_PATH"

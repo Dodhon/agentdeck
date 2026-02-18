@@ -4,22 +4,37 @@ const cards = [
   {
     href: "/tasks",
     title: "Tasks Board",
-    body: "Track ownership, priorities, and deterministic task transitions.",
+    body: "Track task ownership and real-time status for both you and OpenClaw.",
   },
   {
-    href: "/scheduler",
-    title: "Scheduler",
-    body: "Review recurring jobs, run history, and run-now execution.",
+    href: "/content-pipeline",
+    title: "Content Pipeline",
+    body: "Move ideas through script, thumbnail, and filming stages.",
+  },
+  {
+    href: "/calendar",
+    title: "Calendar",
+    body: "Review all scheduled tasks and cron jobs in one place.",
   },
   {
     href: "/memory",
     title: "Memory",
-    body: "Ingest and search memory with source-cited snippets.",
+    body: "Search memory logs with source-cited snippets and ingest new notes.",
+  },
+  {
+    href: "/team",
+    title: "Team",
+    body: "Define subagents by role, ownership, and responsibilities.",
+  },
+  {
+    href: "/office",
+    title: "Office",
+    body: "View agent work status and focus in a digital office layout.",
   },
   {
     href: "/activity",
-    title: "Activity",
-    body: "Audit timeline for every mutation across entities.",
+    title: "Activity Log",
+    body: "Audit timeline for every mutation across tasks, jobs, and memory.",
   },
 ];
 
@@ -28,10 +43,10 @@ export default function Home() {
     <section className="screen">
       <div className="screen__header">
         <div>
-          <h1>AgentDeck Mission Control v1</h1>
+          <h1>OpenClaw Mission Control</h1>
           <p>
-            Next.js + Convex implementation lane with deterministic contracts and
-            test gates.
+            Next.js + Convex control center aligned to tasks, pipeline, calendar,
+            memory, team, and office workflows.
           </p>
         </div>
       </div>

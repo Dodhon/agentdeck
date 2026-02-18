@@ -18,12 +18,15 @@ export default function RootLayout({
         <div className="shell">
           <aside className="shell__sidebar">
             <h1>Mission Control</h1>
-            <p>OpenClaw operations runtime</p>
+            <p>Next.js + Convex operations runtime</p>
             <nav>
-              <Link href="/tasks">Tasks</Link>
-              <Link href="/scheduler">Scheduler</Link>
+              <Link href="/tasks">Tasks Board</Link>
+              <Link href="/content-pipeline">Content Pipeline</Link>
+              <Link href="/calendar">Calendar</Link>
               <Link href="/memory">Memory</Link>
-              <Link href="/activity">Activity</Link>
+              <Link href="/team">Team</Link>
+              <Link href="/office">Office</Link>
+              <Link href="/activity">Activity Log</Link>
             </nav>
             <Link className="home-link" href="/">
               Overview

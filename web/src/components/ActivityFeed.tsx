@@ -32,7 +32,7 @@ export function ActivityFeed() {
     <section className="screen">
       <div className="screen__header">
         <div>
-          <h1>Activity</h1>
+          <h1>Activity Log</h1>
           <p>Immutable timeline of task, job, and memory mutations.</p>
         </div>
         <ModeBadge mode={mode} />

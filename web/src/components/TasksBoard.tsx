@@ -78,8 +78,8 @@ export function TasksBoard() {
     <section className="screen">
       <div className="screen__header">
         <div>
-          <h1>Tasks</h1>
-          <p>Track task ownership and state transitions in real time.</p>
+          <h1>Tasks Board</h1>
+          <p>Track every task, its owner, and current status in real time.</p>
         </div>
         <ModeBadge mode={mode} />
       </div>

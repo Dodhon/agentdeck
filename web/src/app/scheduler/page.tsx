@@ -1,5 +1,5 @@
-import { SchedulerBoard } from "@/components/SchedulerBoard";
+import { redirect } from "next/navigation";
 
 export default function SchedulerPage() {
-  return <SchedulerBoard />;
+  redirect("/calendar");
 }

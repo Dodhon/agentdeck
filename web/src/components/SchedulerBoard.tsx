@@ -7,7 +7,15 @@ import { ModeBadge } from "./ModeBadge";
 
 type JobWithLatestRun = Job & { latestRun?: JobRun };
 
-export function SchedulerBoard() {
+interface SchedulerBoardProps {
+  title?: string;
+  description?: string;
+}
+
+export function SchedulerBoard({
+  title = "Calendar",
+  description = "Inspect scheduled tasks, cron jobs, and latest run outcomes.",
+}: SchedulerBoardProps) {
   const [jobs, setJobs] = useState<JobWithLatestRun[]>([]);
   const [mode, setMode] = useState<"convex" | "mock">("mock");
   const [error, setError] = useState<string | null>(null);
@@ -84,14 +92,14 @@ export function SchedulerBoard() {
     <section className="screen">
       <div className="screen__header">
         <div>
-          <h1>Scheduler</h1>
-          <p>Inspect recurring jobs, trigger runs, and track latest outcomes.</p>
+          <h1>{title}</h1>
+          <p>{description}</p>
         </div>
         <ModeBadge mode={mode} />
       </div>
 
       <form className="panel form" onSubmit={onCreate}>
-        <h2>Create scheduler job</h2>
+        <h2>Create scheduled task</h2>
         <label>
           Job name
           <input value={name} onChange={(event) => setName(event.target.value)} />
