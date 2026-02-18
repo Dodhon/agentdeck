@@ -52,6 +52,17 @@ Decision needed by: 2026-02-18 (today) to begin Phase 1 scaffolding and schema i
 - NG3: no broad third-party integrations beyond required OpenClaw/cron/memory sources.
 - NG4: no multi-tenant org model; single-operator scope only.
 
+3.1) Source inspiration alignment (article -> product scope)
+- Article framing: “OpenClaw needs Mission Control” with Next.js + Convex stack.
+- Component mapping:
+  - Tasks Board -> v1 `/tasks` (core).
+  - Calendar (scheduled tasks/cron visibility) -> v1 `/scheduler` (core).
+  - Memory + global search -> v1 `/memory` (core).
+  - Content Pipeline -> v2 after v1 acceptance.
+  - Team (agent roster + role clarity) -> v2 after v1 acceptance.
+  - Office (avatar simulation) -> v3/optional only.
+- Rationale: this keeps the proactive-operating-system value from the article while avoiding v1 scope collapse.
+
 4) Success metrics (quantified)
 - SM1: 100% of newly created tasks appear in the Tasks view within 2 seconds.
 - SM2: 100% of job runs are visible with status + summary in run history.
@@ -230,8 +241,13 @@ Untrusted Inputs / Sources
 
 16) Open questions
 - OQ1: memory embedding provider/strategy for semantic search in local dev ([TODO] pick concrete provider).
-- OQ2: cutover trigger: date-based or acceptance-criteria-based switch ([TODO] default to acceptance-based).
+- OQ2: cutover trigger: date-based or acceptance-criteria-based switch.
 - OQ3: whether to preserve old SQLite read-only diagnostics page post-migration.
+
+16.1) Resolved decisions (locked)
+- RD1 (cutover): acceptance-criteria-based cutover only. No date-based cutover.
+- RD2 (v1 scope): tasks + scheduler + memory + activity only; content/team/office remain post-v1 phases.
+- RD3 (stack): Next.js App Router + Convex + TypeScript is mandatory for all new Mission Control surfaces.
 
 17) Core PR vs Optional follow-ups
 ### Core PR (must-do)
@@ -242,10 +258,16 @@ Untrusted Inputs / Sources
 - Validation scripts/checklist for acceptance criteria.
 
 ### Optional follow-ups
-- Content pipeline screen.
-- Team role map/subagent roster view.
+- Content pipeline screen (idea -> script -> thumbnail -> filming -> published, with attachments).
+- Team role map/subagent roster view (agent cards, roles, responsibilities, current load).
 - Office/visual simulation layer.
 - Advanced analytics (throughput, SLA, trend charts).
+
+17.1) Phase roadmap (inspired by article sequence)
+- Phase 1 (this plan): Tasks, Scheduler, Memory, Activity.
+- Phase 2: Content Pipeline + Team.
+- Phase 3: Office simulation and advanced visuals.
+- Gate rule: each phase starts only after prior phase acceptance checks pass.
 
 18) Recommendation
 Proceed with a scope-locked v1 migration in this order: schema/contracts first, then Tasks, Scheduler, Memory, then migration hardening. Keep visuals intentionally plain until behavioral reliability passes acceptance.
@@ -254,6 +276,24 @@ Proceed with a scope-locked v1 migration in this order: schema/contracts first, 
 1. Approve this plan and branch as the execution base (today, 2026-02-18).
 2. Start E1 scaffold and schema contracts.
 3. Open a draft PR titled: `Plan: Mission Control v1 migration to Next.js + Convex + TypeScript` linking this plan.
+
+20) Rollback plan (L1-required)
+- Trigger conditions:
+  - any critical data integrity defect in task/job status contracts;
+  - scheduler run recording misses terminal rows in validation;
+  - memory search fails traceability requirement repeatedly in acceptance set.
+- Rollback mechanism:
+  - keep existing Express + SQLite app runnable during migration;
+  - gate new Next.js Mission Control routes behind an environment switch;
+  - flip switch to legacy app as default if trigger conditions are met.
+- Data posture:
+  - Convex writes are append-first (events/logs) and kept for debugging;
+  - SQLite remains read-only legacy source during rollback window;
+  - no destructive backfill deletes during v1 rollout.
+- Verification after rollback:
+  - confirm legacy ops board loads;
+  - confirm existing snapshots/tasks remain visible in legacy path;
+  - record rollback incident in activity/log notes with root-cause owner.
 
 ## Ready for Execution
 - [ ] Scope approved: Tasks + Scheduler + Memory + Activity only.
