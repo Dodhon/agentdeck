@@ -1,7 +1,7 @@
-import crypto from "node:crypto";
 import { mutationGeneric, queryGeneric } from "convex/server";
 import { v } from "convex/values";
 import { requireConvexUserActor } from "./actors";
+import { randomId } from "./utils";
 
 function schedulerRunKey(params: {
   jobId: string;
@@ -46,7 +46,7 @@ export const createJob = mutationGeneric({
   handler: async (ctx, args) => {
     const actor = await requireConvexUserActor(ctx);
     const ts = new Date().toISOString();
-    const jobId = `job_${crypto.randomUUID()}`;
+    const jobId = randomId("job");
 
     const doc = {
       jobId,

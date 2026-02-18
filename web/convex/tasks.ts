@@ -1,7 +1,7 @@
-import crypto from "node:crypto";
 import { mutationGeneric, queryGeneric } from "convex/server";
 import { v } from "convex/values";
 import { requireConvexUserActor } from "./actors";
+import { randomId } from "./utils";
 
 type TaskStatus =
   | "backlog"
@@ -70,7 +70,7 @@ export const createTask = mutationGeneric({
   handler: async (ctx, args) => {
     const actor = await requireConvexUserActor(ctx);
     const createdAt = new Date().toISOString();
-    const taskId = `task_${crypto.randomUUID()}`;
+    const taskId = randomId("task");
 
     const taskDoc = {
       taskId,

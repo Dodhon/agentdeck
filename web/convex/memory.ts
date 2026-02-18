@@ -1,15 +1,11 @@
-import crypto from "node:crypto";
 import { mutationGeneric, queryGeneric } from "convex/server";
 import { v } from "convex/values";
 import { requireConvexUserActor } from "./actors";
+import { contentChecksum, hashPrefix, randomId } from "./utils";
 
 function ingestKey(sourcePath: string, checksum: string): string {
-  const sourceHash = crypto.createHash("sha1").update(sourcePath).digest("hex").slice(0, 12);
-  const checksumHash = crypto
-    .createHash("sha256")
-    .update(checksum)
-    .digest("hex")
-    .slice(0, 16);
+  const sourceHash = hashPrefix(sourcePath, 12);
+  const checksumHash = hashPrefix(checksum, 16);
   return `ingest:${sourceHash}:${checksumHash}`;
 }
 
@@ -37,7 +33,7 @@ export const ingestMemory = mutationGeneric({
   handler: async (ctx, args) => {
     const actor = await requireConvexUserActor(ctx);
     const ts = new Date().toISOString();
-    const checksum = crypto.createHash("sha256").update(args.body).digest("hex");
+    const checksum = contentChecksum(args.body);
     const key = ingestKey(args.sourcePath, checksum);
 
     const existing = await ctx.db
@@ -48,7 +44,7 @@ export const ingestMemory = mutationGeneric({
       return existing;
     }
 
-    const docId = `doc_${crypto.randomUUID()}`;
+    const docId = randomId("doc");
     const doc = {
       docId,
       sourcePath: args.sourcePath,
