@@ -5,10 +5,20 @@
     "ingest:dry": "node ops_board/scripts/ingest.js --dry-run",
     "snapshot": "node ops_board/scripts/snapshot.js",
     "start": "node ops_board/server.js",
+    "start:legacy": "node ops_board/server.js",
     "validate": "node ops_board/scripts/validate.js",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:browser:smoke": "bash ops_board/scripts/browser_smoke.sh"
+    "test:browser:smoke": "bash ops_board/scripts/browser_smoke.sh",
+    "web:dev": "npm --prefix web run dev -- --port 4100",
+    "web:lint": "npm --prefix web run lint",
+    "web:test:unit": "npm --prefix web run test:unit",
+    "web:test:tasks": "npm --prefix web run test:tasks",
+    "web:test:scheduler": "npm --prefix web run test:scheduler",
+    "web:test:e2e": "npm --prefix web run test:e2e",
+    "web:test:browser:smoke": "npm --prefix web run test:browser:smoke",
+    "web:test:memory": "npm --prefix web run test:memory -- --query-set tests/acceptance/memory-query-set.json --report reports/memory/citation-coverage.json",
+    "web:convex:schema:check": "npm --prefix web run convex:schema:check"
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",

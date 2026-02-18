@@ -129,3 +129,28 @@ Run browser automation smoke checks (requires `agent-browser` CLI):
 ```bash
 npm run test:browser:smoke
 ```
+
+## Mission Control web app (Next.js + Convex)
+Phase 1 implementation lives in `web/`.
+
+Install:
+```bash
+cd web
+npm install
+```
+
+Run:
+```bash
+npm run dev -- --port 4100
+```
+Open `http://127.0.0.1:4100`.
+
+Web validation gates:
+```bash
+npm run web:convex:schema:check
+npm run web:test:tasks
+npm run web:test:scheduler
+npm run web:test:memory
+npm run web:test:e2e
+npm run web:test:browser:smoke
+```
