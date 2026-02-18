@@ -152,11 +152,20 @@ Resource checklist
 - Proposed (Phase 1):
   - Next.js routes: `/tasks`, `/scheduler`, `/memory`, `/activity`.
   - Convex schema: `tasks`, `taskEvents`, `jobs`, `jobRuns`, `memoryDocs`, `memoryChunks`, `activityLog`.
+  - Required idempotency fields in schema:
+    - `jobRuns.idempotencyKey` (required, unique per run attempt).
+    - `memoryDocs.ingestKey` (required, unique per ingested source version).
 
 ### 8.4 Idempotency and conflict handling
 - Idempotency scope: all ingest and scheduler-run creation mutations.
 - Contract: retries must reuse idempotency key and avoid duplicate terminal rows.
-- Conflict handling: return canonical existing record when same key is replayed.
+- Key format (locked):
+  - Scheduler runs: `run:{jobId}:{scheduledForIso}:{attempt}`.
+  - Memory ingest: `ingest:{sourcePathSha1_12}:{checksumSha256_16}`.
+- Storage fields (locked):
+  - Scheduler: persist key to `jobRuns.idempotencyKey`.
+  - Ingest: persist key to `memoryDocs.ingestKey`.
+- Conflict handling: when a duplicate key is received, return the canonical existing row and do not create a new row.
 - Retention window: keep idempotency keys for at least 30 days in Phase 1.
 
 ### 8.5 Source-of-truth vs projection model
@@ -169,6 +178,8 @@ Resource checklist
 - Uniqueness:
   - `tasks`: unique logical ID.
   - `jobRuns`: uniqueness on (`jobId`, `attempt`) to prevent duplicate attempt rows.
+  - `jobRuns`: uniqueness on `idempotencyKey`.
+  - `memoryDocs`: uniqueness on `ingestKey`.
 - Index strategy:
   - `tasks` by status/updatedAt.
   - `jobs` by enabled/nextRunAt.
@@ -177,7 +188,12 @@ Resource checklist
 
 ### 8.7 Identity trust boundary and governance posture
 - UI display identity (agent labels/session titles) is not authoritative.
-- Authoritative principal for mutations is server-validated actor context.
+- Actor auth contract (locked):
+  - Public Convex mutations: derive actor identity from `ctx.auth.getUserIdentity()` only.
+  - Public mutation rejection: if no Convex identity exists, mutation returns unauthorized and no write occurs.
+  - Client payload rule: client-supplied `actorId`/`actorType` is ignored if present.
+  - Internal scheduler/ingest writes: use internal Convex mutations only, stamped as `actorType=system` with `actorId` in `{scheduler, ingest_worker, migration}`.
+  - Every mutation write to `taskEvents`/`activityLog` stores `actorType`, `actorId`, and `authSource` (`convex_user` or `internal_system`).
 - Data minimization: store only required task/schedule/memory metadata + citations.
 - Redaction: prevent secret/token values from being persisted in memory/activity payloads.
 - Access boundary: single-operator scope in this phase.
@@ -213,13 +229,17 @@ Resource checklist
   - Pass: app boot succeeds; legacy `npm start` still works from repo root.
 - V2 (R2, R3, R6): tasks transitions + activity log coupling.
   - Command (to be added in this PR): `cd "$(git rev-parse --show-toplevel)/web" && npm run test:tasks`
-  - Pass: each task mutation writes exactly one corresponding activity row.
+  - Pass: each task mutation writes exactly one corresponding activity row and confirms actor identity is server-derived (client actor spoof attempts are ignored/rejected).
 - V3 (R2, R4): scheduler lifecycle/run semantics.
   - Command (to be added in this PR): `cd "$(git rev-parse --show-toplevel)/web" && npm run test:scheduler`
   - Pass: one terminal row per run attempt; retry increments attempt index.
 - V4 (R2, R5): memory search + citation coverage.
-  - Command (to be added in this PR): `cd "$(git rev-parse --show-toplevel)/web" && npm run test:memory`
-  - Pass: citation path/snippet present for >=95% acceptance queries.
+  - Command (to be added in this PR): `cd "$(git rev-parse --show-toplevel)/web" && npm run test:memory -- --query-set tests/acceptance/memory-query-set.json --report reports/memory/citation-coverage.json`
+  - Acceptance artifacts (locked):
+    - Query set source: `web/tests/acceptance/memory-query-set.json`.
+    - Coverage report output: `web/reports/memory/citation-coverage.json`.
+    - Human-readable summary: `web/reports/memory/citation-coverage.md`.
+  - Pass: citation path/snippet present for >=95% acceptance queries in the generated coverage report.
 - V5 (R9): UI gate enforcement.
   - Commands:
     - Existing: `cd "$(git rev-parse --show-toplevel)" && npm run test:e2e`
@@ -237,6 +257,7 @@ Resource checklist
 - `cd "$(git rev-parse --show-toplevel)/web" && npm run test:unit`
 - `cd "$(git rev-parse --show-toplevel)/web" && npm run test:e2e`
 - `cd "$(git rev-parse --show-toplevel)/web" && npm run test:browser:smoke`
+- `cd "$(git rev-parse --show-toplevel)/web" && npm run test:memory -- --query-set tests/acceptance/memory-query-set.json --report reports/memory/citation-coverage.json`
 - `cd "$(git rev-parse --show-toplevel)/web" && npm run convex:schema:check`
 
 External API testability strategy
@@ -269,11 +290,11 @@ External API testability strategy
 7. How do we avoid breaking the current UI?  
    Keep legacy server intact and maintain existing root UI test gates.
 8. What is the cutover trigger?  
-   Acceptance-based only after Phase 1 validation gates pass.
+   Acceptance-based only when V1-V5 pass on two consecutive full runs for the same commit.
 9. How do we validate schema presence in Convex?  
    Add `convex:schema:check` command and block mutation wiring until it passes.
 10. When is this phase done?  
-   When E1-E6 are complete and V1-V5 pass with evidence in PR.
+   When E1-E6 are complete and V1-V5 pass on two consecutive runs with artifacts attached in PR.
 
 14) Open questions
 - OQ1: which Convex project/environment naming convention should be standard for this repo (`dev`/`staging` split vs single dev for now)?
@@ -310,6 +331,13 @@ Verification commands
 - `cd "$(git rev-parse --show-toplevel)" && npm run test:e2e`
 - `cd "$(git rev-parse --show-toplevel)" && npm run test:browser:smoke`
 
+16.1) Cutover gate (objective pass criteria)
+- Gate C1: all V1-V5 checks pass end-to-end.
+- Gate C2: V1-V5 must pass on two consecutive runs against the same commit SHA.
+- Gate C3: memory citation coverage report at `web/reports/memory/citation-coverage.json` shows >=95%.
+- Gate C4: no open P0/P1 defects tagged against the implementation PR.
+- Gate C5: rollback drill command set in section 16 verifies legacy runtime is still operational.
+
 17) Recommendation
 Proceed with this Phase 1 implementation plan as the immediate next coding PR, using `web/` isolation plus strict state contracts and UI verification gates to keep migration risk controlled.
 
@@ -323,6 +351,9 @@ Proceed with this Phase 1 implementation plan as the immediate next coding PR, u
 - [ ] `web/` isolation approach approved.
 - [ ] Convex schema/state contracts approved.
 - [ ] UI verification gates accepted for both legacy and `web/` paths.
+- [ ] Actor auth contract and idempotency key contract approved.
+- [ ] Memory acceptance artifacts paths approved.
+- [ ] Cutover gate approved: V1-V5 green on two consecutive runs for same commit.
 - [ ] Rollback trigger/steps accepted.
 
 ## Best-practice references
