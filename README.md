@@ -117,3 +117,15 @@ export OPENCLAW_SESSION_ID_FIELD="id"
 ```bash
 npm run validate
 ```
+
+## UI testing
+Run Playwright regression tests:
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+Run browser automation smoke checks (requires `agent-browser` CLI):
+```bash
+npm run test:browser:smoke
+```

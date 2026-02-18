@@ -2,4 +2,9 @@ node_modules/
 ops_board/ops_board.sqlite
 ops_board/ops_board.sqlite-shm
 ops_board/ops_board.sqlite-wal
+ops_board/ops_board.e2e.sqlite*
+ops_board/ops_board.browser-smoke.sqlite*
 reports/ops-board/
+reports/browser-smoke/
+playwright-report/
+test-results/
