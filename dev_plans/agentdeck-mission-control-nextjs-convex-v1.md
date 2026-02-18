@@ -37,6 +37,7 @@ Decision needed by: 2026-02-18 (today) to begin Phase 1 scaffolding and schema i
 - R7 (Memory): expose global search (text + semantic) and render source snippets.
 - R8 (Cross-cutting): maintain immutable activity log for all significant mutations.
 - R9 (Contracts): any agent-created work item must map to a task ID; any scheduled action must map to a job ID.
+- R10 (UI quality gates): any UI-affecting change must pass Playwright regression checks and a browser automation smoke flow before merge.
 
 ### Non-functional requirements
 - NFR1 Reliability: no silent failure states; failed jobs surface actionable errors.
@@ -189,6 +190,9 @@ Untrusted Inputs / Sources
 - E5 (R8, NFR1-6): health indicators, migration/backfill utility, and acceptance validation suite.
   - Artifacts: migration action/script, `/activity`, test checklist.
   - Owner: Clawd. Window: 2026-02-22.
+- E6 (R10): establish UI regression tooling and automation evidence workflow.
+  - Artifacts: Playwright config/specs, browser automation smoke script, CI-ready test commands.
+  - Owner: Clawd. Window: 2026-02-22.
 
 13) Validation plan `V1..Vn` mapping to `R*` + success metrics
 - V1 (R1/R2, SM1, SM4): task create/update/transition integration test.
@@ -206,6 +210,12 @@ Untrusted Inputs / Sources
 - V5 (NFR1/NFR6): failure-path test.
   - Simulate ingest and run failures.
   - Pass: UI shows failure state + actionable retry.
+- V6 (R10): Playwright UI regression suite for changed screens.
+  - Command: `npm run test:e2e`.
+  - Pass: all UI specs green on changed surfaces; artifacts saved on failure.
+- V7 (R10): browser automation smoke using `agent-browser` for realistic operator flow checks.
+  - Command: `npm run test:browser:smoke`.
+  - Pass: page opens, core controls are discoverable/interactable, and smoke screenshot evidence is captured.
 
 14) Risks & mitigations
 - Risk: migration churn if old and new systems diverge during build.
@@ -301,6 +311,7 @@ Proceed with a scope-locked v1 migration in this order: schema/contracts first, 
 - [ ] Task/job state machine contracts accepted.
 - [ ] Memory search citation requirement accepted.
 - [ ] Validation gates (SM1–SM5, V1–V5) accepted.
+- [ ] UI quality gates accepted: Playwright (`test:e2e`) + browser automation smoke (`test:browser:smoke`).
 
 ## Best-practice references
 - Next.js App Router docs: https://nextjs.org/docs/app

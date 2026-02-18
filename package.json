@@ -5,11 +5,17 @@
     "ingest:dry": "node ops_board/scripts/ingest.js --dry-run",
     "snapshot": "node ops_board/scripts/snapshot.js",
     "start": "node ops_board/server.js",
-    "validate": "node ops_board/scripts/validate.js"
+    "validate": "node ops_board/scripts/validate.js",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:browser:smoke": "bash ops_board/scripts/browser_smoke.sh"
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",
     "express": "^5.2.1",
     "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
   }
 }
