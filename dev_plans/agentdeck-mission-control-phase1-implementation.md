@@ -247,6 +247,35 @@ Resource checklist
     - To be added for `web/`: `cd "$(git rev-parse --show-toplevel)/web" && npm run test:e2e && npm run test:browser:smoke`
   - Pass: all changed-surface UI checks pass and artifacts are captured on failure.
 
+10.1) Testing execution protocol (clarified, ordered)
+- Preconditions:
+  - Root deps installed: `cd "$(git rev-parse --show-toplevel)" && npm install`
+  - Web deps installed (to be added in implementation PR): `cd "$(git rev-parse --show-toplevel)/web" && npm install`
+  - Playwright browser runtime available:
+    - Root: `cd "$(git rev-parse --show-toplevel)" && npx playwright install chromium`
+    - Web (to be added): `cd "$(git rev-parse --show-toplevel)/web" && npx playwright install chromium`
+  - Browser automation CLI available: `command -v agent-browser`
+- Run order for cutover evidence (same commit SHA):
+  1. Run all V1-V5 checks once and save logs/artifacts as Run A.
+  2. Run all V1-V5 checks again without code changes and save logs/artifacts as Run B.
+  3. Compare Run A vs Run B outcomes; both must be fully green.
+- Failure policy:
+  - Any single failed command marks the run failed.
+  - If Run B fails after Run A passes, cutover is blocked.
+  - Only the same commit SHA is valid for the two-run gate.
+
+10.2) Test evidence bundle (required in PR)
+- Attach command outputs (or CI links) for Run A and Run B covering V1-V5.
+- Attach memory quality artifacts:
+  - `web/reports/memory/citation-coverage.json`
+  - `web/reports/memory/citation-coverage.md`
+- Attach UI evidence:
+  - Root smoke screenshot: `reports/browser-smoke/ops-board-smoke.png`
+  - Web smoke screenshot path (to be added in implementation PR): `web/reports/browser-smoke/mission-control-smoke.png`
+- Attach schema check output proving all required collections/indexes are present.
+- Include a one-line verdict block in PR description:
+  - `V1=pass V2=pass V3=pass V4=pass V5=pass` for Run A and Run B.
+
 11) Issue/PR test suite (ad hoc, exact commands, confidence-oriented)
 ### Pre-change baseline (already available)
 - `cd "$(git rev-parse --show-toplevel)" && npm run test:e2e`
@@ -259,6 +288,13 @@ Resource checklist
 - `cd "$(git rev-parse --show-toplevel)/web" && npm run test:browser:smoke`
 - `cd "$(git rev-parse --show-toplevel)/web" && npm run test:memory -- --query-set tests/acceptance/memory-query-set.json --report reports/memory/citation-coverage.json`
 - `cd "$(git rev-parse --show-toplevel)/web" && npm run convex:schema:check`
+
+11.1) Pass/fail interpretation (clarified)
+- `npm run dev` checks (V1): pass only if app becomes reachable on expected local URL and health route check returns HTTP 200.
+- `test:tasks` (V2): pass only if transition + actor-auth assertions are green and activity row count assertions match expected writes.
+- `test:scheduler` (V3): pass only if terminal run-row uniqueness and idempotency replay assertions are green.
+- `test:memory` (V4): pass only if citation coverage in `web/reports/memory/citation-coverage.json` is >=95%.
+- `test:e2e` + `test:browser:smoke` (V5): pass only if both commands are green and screenshot artifact(s) are present.
 
 External API testability strategy
 - Convex interactions: integration-tested against dev Convex project.
@@ -337,6 +373,7 @@ Verification commands
 - Gate C3: memory citation coverage report at `web/reports/memory/citation-coverage.json` shows >=95%.
 - Gate C4: no open P0/P1 defects tagged against the implementation PR.
 - Gate C5: rollback drill command set in section 16 verifies legacy runtime is still operational.
+- Gate C6: PR includes the complete evidence bundle from section 10.2.
 
 17) Recommendation
 Proceed with this Phase 1 implementation plan as the immediate next coding PR, using `web/` isolation plus strict state contracts and UI verification gates to keep migration risk controlled.
