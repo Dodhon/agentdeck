@@ -1,0 +1,17 @@
+[
+  {
+    "id": "q1",
+    "query": "Mission Control",
+    "min_results": 1
+  },
+  {
+    "id": "q2",
+    "query": "source citation",
+    "min_results": 1
+  },
+  {
+    "id": "q3",
+    "query": "scheduler",
+    "min_results": 1
+  }
+]
